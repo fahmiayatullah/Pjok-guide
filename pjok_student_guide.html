@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PJOK SAIQ AL-HIKMAH - Generator Panduan Belajar</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- html2canvas untuk export gambar -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- jsPDF untuk export PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        poster: ['Nunito', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#f59e0b',
+                        kidsBg: '#f0f9ff',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* CSS Khusus untuk Poster agar ukurannya fix 1080x1350 tapi bisa di-preview */
+        .poster-wrapper {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            position: relative;
+            background: #e5e7eb;
+            overflow: hidden;
+            aspect-ratio: 4/5; /* 1080:1350 */
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        #poster-canvas {
+            width: 1080px;
+            height: 1350px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform-origin: top left;
+            background-color: #ffffff;
+            font-family: 'Nunito', sans-serif;
+            color: #1f2937;
+        }
+
+        /* Template Styles */
+        .tpl-fun {
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+        }
+        .tpl-fun .header-shape {
+            background: #3b82f6;
+            border-bottom-left-radius: 50% 20%;
+            border-bottom-right-radius: 50% 20%;
+        }
+        
+        .tpl-sport {
+            background: #f8fafc;
+            border: 20px solid #1e293b;
+        }
+        .tpl-sport .header-shape {
+            background: #f97316;
+            clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+        }
+
+        .tpl-minimal {
+            background: #ffffff;
+        }
+        .tpl-minimal .header-shape {
+            background: #10b981;
+            border-bottom: 8px solid #047857;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .hidden-print { display: none !important; }
+        
+        /* Toast Animation */
+        @keyframes slideInUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .toast-enter { animation: slideInUp 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 h-screen flex overflow-hidden selection:bg-blue-200">
+
+    <aside class="w-20 md:w-64 bg-white border-r border-slate-200 flex flex-col justify-between transition-all duration-300 z-20">
+        <div>
+            <div class="h-16 flex items-center justify-center md:justify-start md:px-6 border-b border-slate-100">
+                <i class="fa-solid fa-person-running text-blue-600 text-2xl"></i>
+                <span class="ml-3 font-bold text-lg hidden md:block text-slate-800 uppercase tracking-wide">PJOK SAIQ AL-HIKMAH</span>
+            </div>
+            <nav class="p-4 space-y-2">
+                <button onclick="nav('dashboard')" id="nav-dashboard" class="w-full flex items-center p-3 rounded-lg text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-colors group active-nav">
+                    <i class="fa-solid fa-house w-6 text-center"></i>
+                    <span class="ml-3 font-medium hidden md:block">Dashboard</span>
+                </button>
+                <button onclick="nav('generator')" id="nav-generator" class="w-full flex items-center p-3 rounded-lg text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-colors group">
+                    <i class="fa-solid fa-wand-magic-sparkles w-6 text-center"></i>
+                    <span class="ml-3 font-medium hidden md:block">Buat Panduan</span>
+                </button>
+                <button onclick="nav('history')" id="nav-history" class="w-full flex items-center p-3 rounded-lg text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-colors group">
+                    <i class="fa-solid fa-clock-rotate-left w-6 text-center"></i>
+                    <span class="ml-3 font-medium hidden md:block">Riwayat</span>
+                </button>
+                <button onclick="nav('database')" id="nav-database" class="w-full flex items-center p-3 rounded-lg text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-colors group">
+                    <i class="fa-solid fa-database w-6 text-center"></i>
+                    <span class="ml-3 font-medium hidden md:block">Database Materi</span>
+                </button>
+            </nav>
+        </div>
+        <div class="p-4 border-t border-slate-100">
+            <button onclick="showHelp()" class="w-full flex items-center p-3 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors">
+                <i class="fa-solid fa-circle-question w-6 text-center"></i>
+                <span class="ml-3 font-medium hidden md:block text-sm">Panduan</span>
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto relative bg-slate-50">
+        
+        <!-- Dashboard View -->
+        <section id="view-dashboard" class="p-6 md:p-10 max-w-5xl mx-auto block">
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 text-white shadow-lg mb-8 relative overflow-hidden">
+                <div class="relative z-10">
+                    <h1 class="text-3xl md:text-4xl font-extrabold mb-2">PJOK SAIQ AL-HIKMAH</h1>
+                    <p class="text-blue-100 text-lg max-w-xl mb-6">Buat panduan belajar PJOK berupa poster infografis yang menarik dan siap dibagikan kepada peserta didik.</p>
+                    <button onclick="nav('generator')" class="bg-white text-blue-600 px-6 py-3 rounded-lg font-bold shadow hover:bg-blue-50 transition-colors">
+                        <i class="fa-solid fa-plus mr-2"></i> Buat Panduan Sekarang
+                    </button>
+                </div>
+                <i class="fa-solid fa-basketball text-white opacity-10 text-9xl absolute -bottom-10 -right-10 transform -rotate-12"></i>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition">
+                    <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2">Cepat & Mudah</h3>
+                    <p class="text-slate-500 text-sm">Hasilkan panduan visual dalam hitungan detik. Cukup pilih materi, sistem akan menyusunnya untuk Anda.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition">
+                    <div class="w-12 h-12 bg-orange-100 text-orange-600 rounded-lg flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-child-reaching"></i>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2">Ramah Anak</h3>
+                    <p class="text-slate-500 text-sm">Bahasa instruksi dan visual disesuaikan secara otomatis berdasarkan tingkat kelas (Kelas 1-6).</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition">
+                    <div class="w-12 h-12 bg-green-100 text-green-600 rounded-lg flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-share-nodes"></i>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2">Siap Dibagikan</h3>
+                    <p class="text-slate-500 text-sm">Download sebagai gambar HD, PDF, atau salin teks ringkasan untuk dikirim ke grup WhatsApp kelas.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-generator" class="p-6 md:p-10 max-w-6xl mx-auto hidden">
+            <h2 class="text-2xl font-bold mb-6 flex items-center">
+                <i class="fa-solid fa-wand-magic-sparkles text-blue-500 mr-3"></i> Buat Panduan Belajar Baru
+            </h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Form Input -->
+                <div class="lg:col-span-7 space-y-6">
+                    
+                    <!-- Panel Info -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                        <h3 class="font-semibold text-slate-700 border-b pb-3 mb-4"><i class="fa-solid fa-school mr-2"></i>Informasi Pembelajaran</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 mb-1">Nama Sekolah</label>
+                                <input type="text" id="inp-sekolah" value="SDI SAIQ Al-Hikmah" class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 mb-1">Nama Guru</label>
+                                <input type="text" id="inp-guru" placeholder="Contoh: Pak Budi" class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 mb-1">Kelas</label>
+                                <select id="inp-kelas" onchange="updateMateriDropdown()" class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
+                                    <option value="" disabled selected>Pilih Kelas</option>
+                                    <option value="1">Kelas 1</option>
+                                    <option value="2">Kelas 2</option>
+                                    <option value="3">Kelas 3</option>
+                                    <option value="4">Kelas 4</option>
+                                    <option value="5">Kelas 5</option>
+                                    <option value="6">Kelas 6</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 mb-1">Semester</label>
+                                <select id="inp-semester" class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
+                                    <option value="1">Semester 1 (Ganjil)</option>
+                                    <option value="2">Semester 2 (Genap)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Panel Materi -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                        <h3 class="font-semibold text-slate-700 border-b pb-3 mb-4"><i class="fa-solid fa-book-open mr-2"></i>Materi Pokok</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 mb-1">Pilih Materi (Sesuai Kelas)</label>
+                                <select id="inp-materi" class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
+                                    <option value="" disabled selected>Pilih kelas terlebih dahulu...</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-500 mb-1">Pertemuan Ke-</label>
+                                    <input type="number" id="inp-pertemuan" min="1" max="30" value="1" class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-500 mb-1">Durasi</label>
+                                    <select id="inp-durasi" class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
+                                        <option value="35">35 menit</option>
+                                        <option value="70">70 menit (2 JP)</option>
+                                        <option value="105">105 menit (3 JP)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 mb-1">Jenis Aktivitas</label>
+                                <select id="inp-jenis" class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
+                                    <option value="sekolah">Aktivitas di Sekolah (Luring)</option>
+                                    <option value="rumah">Aktivitas di Rumah (Mandiri)</option>
+                                    <option value="kelompok">Pembelajaran Kelompok</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Panel Desain -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                        <h3 class="font-semibold text-slate-700 border-b pb-3 mb-4"><i class="fa-solid fa-palette mr-2"></i>Tampilan Poster</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 mb-2">Pilih Template</label>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <button onclick="selectTemplate('tpl-fun')" id="btn-tpl-fun" class="border-2 border-blue-500 bg-blue-50 rounded-lg p-2 text-sm font-medium transition tpl-btn text-blue-700">Fun & Color</button>
+                                    <button onclick="selectTemplate('tpl-sport')" id="btn-tpl-sport" class="border-2 border-transparent bg-slate-50 hover:bg-slate-100 rounded-lg p-2 text-sm font-medium transition tpl-btn text-slate-600">Sporty</button>
+                                    <button onclick="selectTemplate('tpl-minimal')" id="btn-tpl-minimal" class="border-2 border-transparent bg-slate-50 hover:bg-slate-100 rounded-lg p-2 text-sm font-medium transition tpl-btn text-slate-600">Minimalist</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 mb-2">Tema Warna (Berdasarkan Template)</label>
+                                <div class="flex space-x-2">
+                                    <button onclick="setColor('#3b82f6')" class="w-8 h-8 rounded-full bg-blue-500 focus:ring-2 ring-offset-2 ring-blue-500"></button>
+                                    <button onclick="setColor('#10b981')" class="w-8 h-8 rounded-full bg-emerald-500 focus:ring-2 ring-offset-2 ring-emerald-500"></button>
+                                    <button onclick="setColor('#f59e0b')" class="w-8 h-8 rounded-full bg-amber-500 focus:ring-2 ring-offset-2 ring-amber-500"></button>
+                                    <button onclick="setColor('#ef4444')" class="w-8 h-8 rounded-full bg-red-500 focus:ring-2 ring-offset-2 ring-red-500"></button>
+                                    <button onclick="setColor('#8b5cf6')" class="w-8 h-8 rounded-full bg-violet-500 focus:ring-2 ring-offset-2 ring-violet-500"></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="generatePoster()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition-transform transform active:scale-95 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-wand-magic-sparkles mr-2"></i> BUAT POSTER SEKARANG
+                    </button>
+
+                </div>
+
+                <div class="lg:col-span-5">
+                    <div class="sticky top-6">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-bold text-slate-700">Preview Poster</h3>
+                            <span class="text-xs bg-slate-200 text-slate-600 px-2 py-1 rounded-full">1080x1350px</span>
+                        </div>
+                        
+                        <!-- Wrapper responsif untuk preview -->
+                        <div class="poster-wrapper" id="poster-container">
+                            <!-- Canvas asli (ukuran fix) yang di-scale via JS -->
+                            <div id="poster-canvas" class="tpl-fun">
+                                
+                                <!-- Isi Poster (Di-generate via JS) -->
+                                <div class="w-full h-full flex flex-col relative" id="poster-content">
+                                    <!-- Placeholder sebelum generate -->
+                                    <div class="flex-1 flex flex-col items-center justify-center text-slate-400 p-20 text-center">
+                                        <i class="fa-solid fa-image text-6xl mb-4 opacity-50"></i>
+                                        <p class="text-2xl font-bold mb-2">Area Preview</p>
+                                        <p class="text-lg">Silakan lengkapi form dan klik tombol "Buat Poster" untuk melihat hasilnya di sini.</p>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons (Hidden initially) -->
+                        <div id="action-buttons" class="mt-4 grid grid-cols-2 gap-2 hidden">
+                            <button onclick="downloadImage('jpg')" class="bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded text-sm font-medium transition flex items-center justify-center">
+                                <i class="fa-solid fa-file-image mr-2"></i> Unduh JPG
+                            </button>
+                            <button onclick="downloadPDF()" class="bg-red-500 hover:bg-red-600 text-white p-2 rounded text-sm font-medium transition flex items-center justify-center">
+                                <i class="fa-solid fa-file-pdf mr-2"></i> Unduh PDF
+                            </button>
+                            <button onclick="generateWAText()" class="col-span-2 bg-green-500 hover:bg-green-600 text-white p-2 rounded text-sm font-medium transition flex items-center justify-center">
+                                <i class="fa-brands fa-whatsapp mr-2"></i> Buat Pesan WhatsApp
+                            </button>
+                            <button onclick="editContent()" class="col-span-2 bg-slate-200 hover:bg-slate-300 text-slate-700 p-2 rounded text-sm font-medium transition flex items-center justify-center">
+                                <i class="fa-solid fa-pen-to-square mr-2"></i> Edit Teks Poster (Mode Manual)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-history" class="p-6 md:p-10 max-w-6xl mx-auto hidden">
+            <h2 class="text-2xl font-bold mb-6 flex items-center">
+                <i class="fa-solid fa-clock-rotate-left text-blue-500 mr-3"></i> Riwayat Poster
+            </h2>
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 text-slate-500">
+                            <tr>
+                                <th class="px-6 py-4 font-medium">Tanggal</th>
+                                <th class="px-6 py-4 font-medium">Kelas / Materi</th>
+                                <th class="px-6 py-4 font-medium">Pertemuan</th>
+                                <th class="px-6 py-4 font-medium text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body" class="divide-y divide-slate-100">
+                            <!-- Dibiarkan kosong, diisi via JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="empty-history" class="p-8 text-center text-slate-500">
+                    <i class="fa-solid fa-folder-open text-4xl mb-3 opacity-20"></i>
+                    <p>Belum ada riwayat poster yang dibuat.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-database" class="p-6 md:p-10 max-w-6xl mx-auto hidden">
+            <h2 class="text-2xl font-bold mb-6 flex items-center">
+                <i class="fa-solid fa-database text-blue-500 mr-3"></i> Database Materi (Preview)
+            </h2>
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <p class="text-slate-600 mb-4">Aplikasi ini dilengkapi dengan generator cerdas berbasis data materi PJOK SD. Sistem akan mengadaptasi gaya bahasa dan instruksi sesuai usia (Kelas 1-2 vs Kelas 5-6).</p>
+                <div id="db-preview" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                    <!-- JS will populate a visual tree -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- WA Modal -->
+    <div id="wa-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col">
+            <div class="bg-green-500 p-4 text-white flex justify-between items-center">
+                <h3 class="font-bold"><i class="fa-brands fa-whatsapp mr-2"></i> Pesan Grup Kelas</h3>
+                <button onclick="closeModal('wa-modal')" class="hover:bg-green-600 p-1 rounded"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-4 flex-1">
+                <textarea id="wa-text-area" class="w-full h-64 border border-slate-200 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 ring-green-500 resize-none"></textarea>
+            </div>
+            <div class="p-4 border-t bg-slate-50 flex gap-2">
+                <button onclick="copyWA()" class="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg font-medium transition">
+                    <i class="fa-solid fa-copy mr-1"></i> Copy Teks
+                </button>
+                <button onclick="closeModal('wa-modal')" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium transition">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-white z-[9999] hidden flex-col items-center justify-center">
+        <div class="w-16 h-16 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+        <h3 id="loading-title" class="text-xl font-bold text-slate-700">Sedang menyusun panduan...</h3>
+        <p id="loading-desc" class="text-slate-500">Menerapkan desain dan menyesuaikan bahasa.</p>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 text-white px-4 py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-green-400 mr-3 text-lg"></i>
+        <span id="toast-msg">Notifikasi</span>
+    </div>
+
+    <script>
+        // Database terstruktur untuk materi PJOK SD (Sesuai Standar Kurikulum Nasional)
+        const materiDB = {
+            "1": { // Kelas 1 & 2 (Fase A - Fokus Gerak Dasar & Pengenalan)
+                "Gerak Lokomotor (Jalan & Lari)": {
+                    title: "Ayo Berjalan & Berlari!",
+                    objective: "Bisa berjalan dan berlari dengan seimbang tanpa jatuh.",
+                    material: ["Berjalan buat tubuh sehat.", "Badan tegak, pandangan ke depan.", "Ayunkan tangan secara bergantian."],
+                    steps: ["Pemanasan: Putar kepala dan bahu.", "Buat garis lurus di lantai menggunakan lakban.", "Berjalan perlahan di atas garis.", "Berlari kecil maju dan mundur."],
+                    challenge: "Bisakah kamu berjalan di garis lurus seperti sedang berjalan di atas jembatan kecil?",
+                    tools: ["Lakban untuk garis", "Sepatu olahraga"],
+                    safety: ["Pastikan area bermain bersih dan tidak licin.", "Jangan berlari terlalu kencang di awal."]
+                },
+                "Gerak Manipulatif (Melempar & Menangkap)": {
+                    title: "Tangkap Bolaku!",
+                    objective: "Bisa melempar dan menangkap bola dengan kedua tangan tanpa jatuh.",
+                    material: ["Gunakan kedua tangan untuk menangkap.", "Fokus melihat ke arah bola.", "Lempar dari depan dada."],
+                    steps: ["Pemanasan: Lempar bola ke atas pelan-pelan.", "Berdiri berhadapan dengan teman atau orang tua.", "Lempar bola menyusur tanah (menggelinding).", "Lempar bola melambung setinggi dada dan tangkap."],
+                    challenge: "Berapa kali kamu bisa lempar-tangkap tanpa bolanya jatuh ke lantai?",
+                    tools: ["Bola plastik atau bola kertas", "Area yang aman"],
+                    safety: ["Gunakan bola yang empuk/ringan.", "Beri jarak aman (2-3 meter)."]
+                },
+                "Gerak Non-Lokomotor (Meliuk & Memutar)": {
+                    title: "Tubuh Lentur Seperti Pohon",
+                    objective: "Melatih kelenturan tubuh agar tidak kaku dan tidak mudah cedera.",
+                    material: ["Kakimu ibarat akar pohon yang kuat.", "Badanmu seperti batang yang bisa tertiup angin.", "Tetap seimbang saat meliuk."],
+                    steps: ["Berdiri tegak, buka kaki selebar bahu.", "Angkat kedua tangan ke atas.", "Liukkan badan ke kanan dan ke kiri perlahan.", "Putar pinggul membentuk lingkaran besar."],
+                    challenge: "Bisakah kamu menahan posisi meliuk ke samping selama 5 hitungan tanpa goyah?",
+                    tools: ["Pakaian olahraga santai", "Tidak butuh alat khusus"],
+                    safety: ["Lakukan gerakan perlahan, tidak usah ditarik terlalu keras.", "Atur napas dengan santai."]
+                },
+                "Kesehatan Diri & Kebersihan": {
+                    title: "Aku Anak Sehat & Bersih",
+                    objective: "Mengetahui cara menjaga kebersihan bagian tubuh setelah beraktivitas.",
+                    material: ["Keringat setelah olahraga mengandung kuman.", "Cuci tangan pakai sabun dan air mengalir.", "Ganti baju yang basah oleh keringat."],
+                    steps: ["Selesai berolahraga, lap keringat dengan handuk kecil.", "Pergi ke wastafel, gunakan sabun.", "Cuci tangan dengan metode 6 langkah (gosok sela jari).", "Keringkan tangan, minum air putih hangat."],
+                    challenge: "Hafalkan lagu cuci tangan sambil mempraktikkannya di rumah!",
+                    tools: ["Sabun cuci tangan", "Handuk kecil", "Air minum"],
+                    safety: ["Jangan minum air dingin/es saat masih sangat berkeringat.", "Jangan menggosok mata saat tangan kotor."]
+                }
+            },
+            "3": { // Kelas 3 & 4 (Fase B - Pengenalan Teknik Dasar Permainan & Kebugaran)
+                "Permainan Bola Besar (Sepak Bola Mini)": {
+                    title: "Teknik Menendang & Menghentikan Bola",
+                    objective: "Dapat melakukan gerakan menendang dan menahan bola dengan bagian dalam kaki.",
+                    material: ["Gunakan kaki bagian dalam agar arah bola akurat.", "Kaki tumpu berada di samping bola.", "Mata melihat bola saat menendang."],
+                    steps: ["Lakukan pemanasan berlari keliling area.", "Posisikan bola di depan tubuh.", "Tendang bola ke arah dinding atau teman.", "Hentikan bola (kontrol) dengan telapak atau kaki bagian dalam.", "Ulangi secara bergantian."],
+                    challenge: "Coba tendang bola melewati sela-sela dua botol (sebagai gawang kecil) dari jarak 3 meter!",
+                    tools: ["Bola sepak (plastik/karet)", "2 botol bekas (untuk gawang)"],
+                    safety: ["Pastikan area sekitar bebas dari barang pecah belah.", "Pakai sepatu olahraga agar kaki tidak sakit."]
+                },
+                "Permainan Bola Besar (Voli Mini)": {
+                    title: "Belajar Passing Bawah Voli",
+                    objective: "Dapat melakukan passing bawah dengan posisi lengan yang lurus dan benar.",
+                    material: ["Buka kaki selebar bahu, agak ditekuk.", "Rapatkan dan luruskan kedua lengan di depan.", "Perkenaan bola di atas pergelangan tangan."],
+                    steps: ["Latihan tanpa bola: ayunkan lengan lurus dari bawah ke atas dada.", "Pantulkan bola ke lantai, lalu passing ke atas saat bola turun.", "Minta teman melempar bola, lalu passing kembali.", "Lakukan 10 kali repetisi."],
+                    challenge: "Coba passing bola berturut-turut ke atas (juggling) sebanyak 5 kali tanpa jatuh!",
+                    tools: ["Bola voli (atau bola plastik ringan)", "Halaman terbuka"],
+                    safety: ["Jangan menggunakan bola yang terlalu keras atau berat.", "Lakukan pemanasan pergelangan tangan."]
+                },
+                "Kebugaran Jasmani (Kekuatan Otot)": {
+                    title: "Membangun Kekuatan Tubuh",
+                    objective: "Melatih kekuatan otot lengan, dada, dan perut untuk menunjang aktivitas sehari-hari.",
+                    material: ["Tubuh yang kuat membuat kita tidak mudah lelah.", "Push-up melatih lengan.", "Sit-up melatih otot perut."],
+                    steps: ["Pemanasan seluruh persendian tubuh.", "Lakukan Push-up dengan lutut menempel di lantai sebanyak 5-8 kali.", "Berbaring terlentang, lakukan gerakan Sit-up (dibantu teman memegang kaki) 5-8 kali.", "Lompat di tempat (Jumping Jacks) 15 kali."],
+                    challenge: "Bisakah kamu menyelesaikan 2 putaran (set) latihan di atas dengan istirahat 1 menit di antaranya?",
+                    tools: ["Matras atau karpet empuk", "Air minum"],
+                    safety: ["Jangan menahan napas! Buang napas saat otot mengeluarkan tenaga.", "Berhenti jika terasa sakit pada punggung."]
+                },
+                "Aktivitas Senam Irama": {
+                    title: "Bergerak Sesuai Irama",
+                    objective: "Mampu memadukan gerak langkah kaki dan ayunan lengan mengikuti ketukan musik.",
+                    material: ["Lakukan gerakan dengan semangat dan senyum.", "Ikuti hitungan 1 sampai 8.", "Koordinasikan kaki dan tangan agar kompak."],
+                    steps: ["Pilih lagu semangat (misal: lagu daerah/nasional).", "Hitungan 1-4: Langkah kaki maju mundur sambil tepuk tangan.", "Hitungan 5-8: Ayunkan kedua lengan ke samping kanan dan kiri.", "Gabungkan gerakan tersebut dan ulangi sepanjang 1 bait lagu."],
+                    challenge: "Ciptakan 1 gerakan bebas buatanmu sendiri di akhir lagu!",
+                    tools: ["Pemutar musik (HP/Speaker)"],
+                    safety: ["Lakukan di area lantai yang rata dan tidak licin.", "Gunakan alas kaki yang nyaman."]
+                }
+            },
+            "5": { // Kelas 5 & 6 (Fase C - Olahraga Modifikasi & Analisis Sederhana)
+                "Permainan Bola Kecil (Kasti/Rounders)": {
+                    title: "Teknik Memukul Bola Kasti",
+                    objective: "Mempraktikkan cara memukul bola kasti dengan ayunan benar dan tepat sasaran.",
+                    material: ["Pegang pemukul dengan kedua tangan atau satu tangan kuat.", "Pandangan fokus mengikuti arah datangnya bola.", "Ayunkan pemukul mendatar dari belakang ke depan."],
+                    steps: ["Pemanasan khusus bahu, lengan, dan pinggang.", "Berdiri menyamping, kaki dibuka selebar bahu.", "Teman/Guru melempar bola pelan dari arah samping depan.", "Ayunkan tongkat kayu tepat saat bola melintas di depan tubuh.", "Lakukan evaluasi arah pukulan."],
+                    challenge: "Dari 5 kali lemparan, targetkan 3 kali pukulan keras yang melambung jauh ke depan!",
+                    tools: ["Tongkat pemukul kasti kayu/plastik", "Bola kasti / bola tenis"],
+                    safety: ["WAJIB: Area belakang pemukul harus kosong dari orang lain (zona aman).", "Gunakan bola tenis untuk latihan agar lebih aman."]
+                },
+                "Atletik (Lompat Jauh Gaya Jongkok)": {
+                    title: "Terbang Jauh di Udara",
+                    objective: "Mempraktikkan kombinasi awalan, tolakan, melayang, dan mendarat pada lompat jauh.",
+                    material: ["Awalan lari harus cepat (sprint).", "Tolak menggunakan satu kaki terkuat.", "Saat melayang, tekuk kedua lutut seperti posisi jongkok.", "Mendarat dengan dua kaki bersamaan dan lutut mengeper."],
+                    steps: ["Lakukan pemanasan ekstremitas bawah (kaki dan engkel).", "Latihan melompat di tempat dengan mendarat mengeper.", "Lakukan awalan lari 10 meter.", "Injak papan tolakan dengan 1 kaki, melompat sejauh mungkin.", "Mendarat dengan dua kaki di bak pasir/matras."],
+                    challenge: "Coba ukur lompatanmu, bisakah kamu memecahkan rekor lompatanmu sendiri di percobaan ketiga?",
+                    tools: ["Bak pasir atau matras tebal", "Meteran (opsional)"],
+                    safety: ["Mendarat WAJIB dengan kaki mengeper (ditekuk), tidak boleh kaki lurus kaku.", "Pastikan bak pasir sudah digemburkan/matras tidak bergeser."]
+                },
+                "Senam Lantai (Guling Depan & Belakang)": {
+                    title: "Rangkaian Senam Lantai Dasar",
+                    objective: "Mampu mempraktikkan guling depan (forward roll) dengan tumpuan dan posisi leher yang aman.",
+                    material: ["Selalu gunakan tengkuk (leher belakang) untuk menyentuh matras, BUKAN dahi atau ubun-ubun.", "Tubuh dibulatkan seperti bola agar mudah berguling.", "Akhiri dengan posisi jongkok kembali."],
+                    steps: ["Pemanasan wajib pada area leher dan pinggang.", "Berdiri tegak menghadap matras, lalu jongkok.", "Tempelkan telapak tangan di matras, tundukkan kepala (dagu menempel ke dada).", "Dorong panggul ke depan, berguling dengan halus.", "Akhiri posisi jongkok sambil meluruskan kedua tangan ke depan."],
+                    challenge: "Lakukan gerakan guling depan dengan mulus tanpa terhenti di tengah jalan dan langsung bisa jongkok seimbang!",
+                    tools: ["Matras senam tebal (Sangat Wajib)"],
+                    safety: ["HARUS didampingi guru atau orang dewasa.", "Peserta yang memiliki riwayat sakit leher/punggung dilarang melakukan gerakan ini."]
+                },
+                "Bela Diri (Pencak Silat)": {
+                    title: "Jurus Dasar Pencak Silat",
+                    objective: "Mengenal dan mempraktikkan kuda-kuda dasar dan pukulan lurus dalam pencak silat.",
+                    material: ["Kuda-kuda adalah pondasi tubuh agar tidak mudah jatuh.", "Pukulan lurus dilakukan ke arah depan (dada lawan).", "Tetap fokus dan disiplin, dilarang untuk bermain kasar."],
+                    steps: ["Pemanasan dinamis untuk kaki dan tangan.", "Sikap berdiri tegak.", "Lakukan Kuda-kuda Tengah: Buka kaki lebar, tekuk lutut, badan tegak.", "Lakukan Pukulan Lurus bergantian tangan kanan dan kiri dari pinggang ke depan.", "Latih kombinasi kuda-kuda sambil memukul secara berulang 10 kali."],
+                    challenge: "Tahan posisi kuda-kuda tengah yang rendah dan stabil selama 30 detik. Rasakan kekuatan otot paha-mu!",
+                    tools: ["Pakaian olahraga/seragam silat", "Area luas"],
+                    safety: ["Ini adalah olahraga disiplin, dilarang memukul teman sesungguhnya.", "Pastikan tumpuan kaki kuat agar lutut tidak cedera."]
+                },
+                "Pola Hidup Sehat (Narkoba & Rokok)": {
+                    title: "Generasi Sehat Anti Rokok",
+                    objective: "Memahami bahaya merokok bagi kesehatan paru-paru dan kebugaran tubuh.",
+                    material: ["Rokok mengandung racun yang merusak paru-paru.", "Orang yang berolahraga butuh paru-paru bersih untuk bernapas maksimal.", "Katakan TIDAK pada ajakan mencoba rokok."],
+                    steps: ["Diskusikan: Mengapa atlet olahraga tidak merokok?", "Lakukan simulasi pernapasan: Tarik napas panjang dan hembuskan.", "Bandingkan nafas orang sehat vs nafas orang yang sesak.", "Buat satu poster/slogan mini di kertas tentang 'Bahaya Merokok'."],
+                    challenge: "Jadilah agen kesehatan! Edukasi minimal 1 orang di sekitarmu tentang pentingnya udara bersih bebas asap rokok.",
+                    tools: ["Alat tulis dan kertas HVS (untuk aktivitas teori)"],
+                    safety: ["Gunakan bahasa yang edukatif dan menghindari stigma negatif.", "Pastikan diskusi berjalan interaktif."]
+                }
+            }
+        };
+
+        // Pemetaan kelas ke level data
+        const classMap = { "1":"1", "2":"1", "3":"3", "4":"3", "5":"5", "6":"5" };
+
+        let currentTemplate = 'tpl-fun';
+        let currentColor = '#3b82f6';
+        let scaleVal = 1;
+        let generatedData = null;
+
+        window.onload = () => {
+            handleResize();
+            window.addEventListener('resize', handleResize);
+            loadHistoryTable();
+            populateDatabasePreview();
+        };
+
+        function handleResize() {
+            // Skala kanvas agar muat di preview wrapper
+            const wrapper = document.getElementById('poster-container');
+            const canvas = document.getElementById('poster-canvas');
+            
+            if(!wrapper || !canvas) return;
+
+            const wrapperWidth = wrapper.clientWidth;
+            // Poster asli lebarnya 1080px
+            scaleVal = wrapperWidth / 1080;
+            
+            canvas.style.transform = `scale(${scaleVal})`;
+            // Wrapper menyesuaikan tinggi berdasarkan scale
+            wrapper.style.height = `${1350 * scaleVal}px`;
+        }
+
+        function nav(viewId) {
+            // Sembunyikan semua view
+            ['dashboard', 'generator', 'history', 'database'].forEach(v => {
+                document.getElementById(`view-${v}`).classList.add('hidden');
+                document.getElementById(`nav-${v}`).classList.remove('bg-blue-50', 'text-blue-600', 'active-nav');
+            });
+            // Tampilkan view yang dipilih
+            document.getElementById(`view-${viewId}`).classList.remove('hidden');
+            document.getElementById(`nav-${viewId}`).classList.add('bg-blue-50', 'text-blue-600', 'active-nav');
+            
+            if(viewId === 'generator') handleResize();
+        }
+
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            
+            const icon = document.getElementById('toast-icon');
+            if(isError) {
+                icon.className = "fa-solid fa-circle-exclamation text-red-400 mr-3 text-lg";
+            } else {
+                icon.className = "fa-solid fa-circle-check text-green-400 mr-3 text-lg";
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function updateMateriDropdown() {
+            const kls = document.getElementById('inp-kelas').value;
+            const select = document.getElementById('inp-materi');
+            select.innerHTML = '';
+            
+            if(!kls) {
+                select.innerHTML = '<option value="">Pilih kelas terlebih dahulu...</option>';
+                return;
+            }
+
+            const level = classMap[kls];
+            const data = materiDB[level];
+
+            if(data) {
+                for(let materi in data) {
+                    const opt = document.createElement('option');
+                    opt.value = materi;
+                    opt.textContent = materi;
+                    select.appendChild(opt);
+                }
+                // Tambahkan opsi kustom
+                const optCustom = document.createElement('option');
+                optCustom.value = 'custom';
+                optCustom.textContent = '+ Ketik Materi Sendiri...';
+                select.appendChild(optCustom);
+            }
+        }
+
+        function selectTemplate(tpl) {
+            currentTemplate = tpl;
+            document.querySelectorAll('.tpl-btn').forEach(b => {
+                b.classList.remove('border-blue-500', 'bg-blue-50', 'text-blue-700');
+                b.classList.add('border-transparent', 'bg-slate-50', 'text-slate-600');
+            });
+            event.currentTarget.classList.remove('border-transparent', 'bg-slate-50', 'text-slate-600');
+            event.currentTarget.classList.add('border-blue-500', 'bg-blue-50', 'text-blue-700');
+        }
+
+        function setColor(hex) {
+            currentColor = hex;
+        }
+
+        function generatePoster() {
+            // 1. Validasi
+            const kls = document.getElementById('inp-kelas').value;
+            const materiSel = document.getElementById('inp-materi').value;
+            
+            if(!kls || !materiSel) {
+                showToast("Pilih Kelas dan Materi terlebih dahulu!", true);
+                return;
+            }
+
+            // Tampilkan loading
+            const loader = document.getElementById('loading-overlay');
+            document.getElementById('loading-title').innerText = "Sedang menyusun panduan...";
+            document.getElementById('loading-desc').innerText = "Menerapkan desain dan menyesuaikan bahasa.";
+            loader.classList.remove('hidden');
+
+            setTimeout(() => {
+                // 2. Kumpulkan Data Form
+                const data = {
+                    sekolah: document.getElementById('inp-sekolah').value || 'Sekolah',
+                    guru: document.getElementById('inp-guru').value || 'Guru PJOK',
+                    kelas: kls,
+                    semester: document.getElementById('inp-semester').value,
+                    materiStr: materiSel,
+                    pertemuan: document.getElementById('inp-pertemuan').value,
+                    durasi: document.getElementById('inp-durasi').value,
+                    jenis: document.getElementById('inp-jenis').value,
+                    warna: currentColor,
+                    tema: currentTemplate
+                };
+
+                // 3. Ambil data dari DB berdasarkan intelligence
+                let konten = null;
+                const level = classMap[kls];
+                
+                if(materiSel !== 'custom' && materiDB[level] && materiDB[level][materiSel]) {
+                    konten = {...materiDB[level][materiSel]};
+                } else {
+                    // Fallback jika custom
+                    konten = {
+                        title: `Belajar ${materiSel || 'PJOK'}`,
+                        objective: "Peserta didik dapat memahami dan mempraktikkan gerakan dengan baik.",
+                        material: ["Perhatikan instruksi guru.", "Fokus pada gerakan.", "Jaga keseimbangan."],
+                        steps: ["Lakukan Pemanasan.", "Perhatikan contoh gerakan.", "Coba lakukan perlahan.", "Ulangi beberapa kali."],
+                        challenge: "Lakukan gerakan sebaik mungkin!",
+                        tools: ["Pakaian olahraga", "Sesuai kebutuhan"],
+                        safety: ["Hati-hati saat bergerak.", "Pemanasan wajib."]
+                    };
+                }
+
+                generatedData = {...data, ...konten};
+
+                // 4. Render ke DOM
+                renderPosterDOM(generatedData);
+
+                // Sembunyikan loading, tampilkan tombol
+                document.getElementById('loading-overlay').classList.add('hidden');
+                document.getElementById('action-buttons').classList.remove('hidden');
+                showToast("Poster berhasil dibuat!");
+                
+                // Simpan ke riwayat
+                saveToHistory(generatedData);
+
+            }, 800); // Simulasi delay
+        }
+
+        function renderPosterDOM(data) {
+            const canvas = document.getElementById('poster-canvas');
+            
+            // Set kelas template
+            canvas.className = 'flex flex-col bg-white';
+            canvas.classList.add(data.tema);
+            
+            // Tentukan style spesifik berdasarkan kelas SD (1-3 vs 4-6)
+            const isKelasBawah = parseInt(data.kelas) <= 3;
+            const fontTitle = isKelasBawah ? 'text-6xl font-black tracking-tight' : 'text-5xl font-extrabold uppercase tracking-wide';
+            
+            // Tentukan gaya beradasarkan template
+            let headerStyle = `background-color: ${data.warna}; color: white;`;
+            let accentColor = data.warna;
+
+            let html = `
+                <!-- Header Poster -->
+                <div class="w-full h-[320px] relative flex flex-col items-center justify-center text-center p-10 header-shape shrink-0" style="${headerStyle}">
+                    <div class="absolute top-8 left-10 bg-white text-slate-800 px-6 py-2 rounded-full shadow-md text-xl font-bold border border-slate-100 flex items-center">
+                        <i class="fa-solid fa-school mr-2" style="color: ${accentColor}"></i> ${data.sekolah}
+                    </div>
+                    <div class="absolute top-8 right-10 bg-white text-slate-800 px-6 py-2 rounded-full shadow-md text-xl font-bold border border-slate-100">
+                        Kelas ${data.kelas} • Smt ${data.semester}
+                    </div>
+                    
+                    <div class="mt-6 bg-white text-slate-800 px-8 py-2 rounded-full font-black text-2xl inline-block mb-4 shadow-md border border-slate-100 tracking-wider">
+                        PERTEMUAN ${data.pertemuan}
+                    </div>
+                    <h1 class="${fontTitle} leading-tight mx-auto w-[900px] drop-shadow-md pb-4">
+                        ${data.title}
+                    </h1>
+                </div>
+
+                <!-- Konten Utama Poster (Flexbox Sistem Fix Size) -->
+                <div class="flex-1 w-full flex flex-row p-12 gap-10 bg-transparent shrink-0">
+                    
+                    <!-- Kolom Kiri -->
+                    <div class="w-5/12 flex flex-col space-y-8">
+                        
+                        <!-- Tujuan -->
+                        <div class="bg-white rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-slate-100 relative mt-[-60px] z-10">
+                            <div class="absolute -top-8 -left-8 w-16 h-16 rounded-full flex items-center justify-center text-white text-3xl shadow-lg border-4 border-white" style="background-color: ${accentColor}">
+                                <i class="fa-solid fa-bullseye"></i>
+                            </div>
+                            <h2 class="text-2xl font-black text-slate-800 mb-4 ml-8" style="color: ${accentColor}">HARI INI KITA AKAN...</h2>
+                            <p class="text-xl text-slate-600 font-bold leading-relaxed">${data.objective}</p>
+                        </div>
+
+                        <!-- Materi Singkat -->
+                        <div class="bg-blue-50 rounded-3xl p-8 border-l-8 shadow-sm flex-1" style="border-color: ${accentColor}">
+                            <h2 class="text-2xl font-black mb-5 flex items-center" style="color: ${accentColor}">
+                                <i class="fa-solid fa-lightbulb mr-3"></i> YUK, KENALI!
+                            </h2>
+                            <ul class="space-y-4">
+                                ${data.material.map(m => `
+                                    <li class="flex items-start text-xl text-slate-700 font-semibold">
+                                        <i class="fa-solid fa-check-circle mt-1 mr-3 text-green-500 text-2xl"></i> <span class="leading-snug">${m}</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+
+                        <!-- Alat -->
+                        <div class="bg-slate-50 rounded-3xl p-8 border-2 border-slate-200 border-dashed">
+                            <h2 class="text-xl font-black mb-4 flex items-center text-slate-700 uppercase tracking-wide">
+                                <i class="fa-solid fa-box-open mr-3"></i> Siapkan Alatnya
+                            </h2>
+                            <div class="flex flex-wrap gap-3">
+                                ${data.tools.map(t => `
+                                    <span class="bg-white px-4 py-2 rounded-xl text-lg font-bold shadow-sm border border-slate-100 flex items-center">
+                                        <i class="fa-solid fa-tag text-slate-400 mr-2 text-sm"></i> ${t}
+                                    </span>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Kolom Kanan (Langkah-langkah) -->
+                    <div class="w-7/12 flex flex-col">
+                        <div class="bg-white rounded-3xl p-10 shadow-xl border border-slate-100 relative overflow-hidden flex-1 flex flex-col">
+                            <!-- Dekorasi -->
+                            <div class="absolute -right-10 -top-10 text-[180px] opacity-5 pointer-events-none" style="color: ${accentColor}">
+                                <i class="fa-solid fa-person-running"></i>
+                            </div>
+
+                            <h2 class="text-4xl font-black mb-8 flex items-center uppercase tracking-wide z-10" style="color: ${accentColor}">
+                                <i class="fa-solid fa-bolt mr-4 text-yellow-400 text-5xl"></i> AYO BERGERAK!
+                            </h2>
+                            
+                            <div class="space-y-6 relative z-10 flex-1">
+                                ${data.steps.map((step, index) => `
+                                    <div class="flex items-center bg-slate-50 rounded-2xl p-5 border-2 border-slate-100">
+                                        <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl font-black text-white shrink-0 shadow-md mr-6" style="background-color: ${accentColor}">
+                                            ${index + 1}
+                                        </div>
+                                        <p class="text-2xl text-slate-700 font-bold leading-snug">${step}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+
+                            <!-- Tantangan -->
+                            <div class="mt-8 bg-yellow-50 rounded-2xl p-8 border-4 border-yellow-300 relative">
+                                <div class="absolute -right-4 -top-6 text-6xl drop-shadow-md">🏆</div>
+                                <h3 class="text-2xl font-black text-yellow-800 flex items-center mb-3">
+                                    TANTANGAN HARI INI!
+                                </h3>
+                                <p class="text-2xl text-yellow-900 font-bold leading-snug pr-8">${data.challenge}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer (Keselamatan & Penutup) -->
+                <div class="w-full h-[220px] bg-slate-800 text-white p-10 flex flex-row gap-10 items-center shrink-0">
+                    
+                    <div class="w-1/2">
+                        <h3 class="text-2xl font-black text-red-400 mb-4 flex items-center tracking-wide">
+                            <i class="fa-solid fa-triangle-exclamation mr-3 text-3xl"></i> INGAT KESELAMATAN!
+                        </h3>
+                        <ul class="text-xl text-slate-200 space-y-2 font-medium">
+                            ${data.safety.map(s => `<li>• ${s}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    <div class="w-1/2 bg-white p-6 rounded-2xl shadow-lg border border-slate-200 text-slate-800">
+                        <h3 class="text-xl font-black mb-2 uppercase" style="color: ${accentColor}">Refleksi: Sudah Bisa?</h3>
+                        <p class="text-lg text-slate-600 mb-4 font-semibold leading-snug">Setelah selesai, rasakan apa yang sudah kamu kuasai dan bagian mana yang paling menyenangkan.</p>
+                        <p class="text-base font-bold italic" style="color: ${accentColor}">"Terus mencoba dan tetap aktif bergerak!" - ${data.guru}</p>
+                    </div>
+
+                </div>
+            `;
+
+            document.getElementById('poster-content').innerHTML = html;
+            
+            // Tambahkan elemen contenteditable sementara untuk mode edit manual
+            makeEditable();
+        }
+
+        function makeEditable() {
+            // Berikan atribut contenteditable pada teks di poster agar bisa diklik dan diedit guru
+            const canvas = document.getElementById('poster-canvas');
+            const editableElements = canvas.querySelectorAll('h1, h2, h3, p, li, .bg-white');
+            
+            editableElements.forEach(el => {
+                // Jangan buat icon editable
+                if(el.children.length > 0 && el.children[0].tagName === 'I') return;
+                // Jangan buat container besar editable
+                if(el.tagName === 'DIV' && !el.classList.contains('px-5') && !el.classList.contains('px-6')) return;
+                
+                el.setAttribute('contenteditable', 'true');
+                el.classList.add('hover:ring-2', 'hover:ring-blue-300', 'hover:bg-blue-50/10', 'transition', 'rounded', 'outline-none');
+                
+                // Cegah line break di header dll
+                el.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && ['H1','H2','H3','SPAN','DIV'].includes(el.tagName)) {
+                        e.preventDefault();
+                    }
+                });
+            });
+        }
+
+        function editContent() {
+            showToast("Klik langsung pada teks di poster untuk mengeditnya.");
+        }
+
+        async function prepareCanvasForExport() {
+            /* 
+             * METODE RENDER LANGSUNG (LIVE DOM MANIPULATION)
+             * Ini mencegah hilangnya styling flex/grid yang sering terjadi 
+             * jika menggunakan kloning off-screen atau elemen di balik layar.
+             */
+            const wrapper = document.getElementById('poster-container');
+            const canvasEl = document.getElementById('poster-canvas');
+            
+            // 1. Matikan outline editable agar tidak ikut tertangkap kamera
+            const editables = canvasEl.querySelectorAll('[contenteditable]');
+            editables.forEach(el => {
+                el.classList.remove('hover:ring-2', 'hover:ring-blue-300', 'hover:bg-blue-50/10', 'transition');
+            });
+
+            // Pastikan font sudah dimuat sepenuhnya oleh browser
+            await document.fonts.ready;
+
+            // 2. Simpan keadaan (state) awal elemen
+            const oldScale = canvasEl.style.transform;
+            const oldWrapperHeight = wrapper.style.height;
+            const oldWrapperWidth = wrapper.style.width;
+            const oldWrapperPos = wrapper.style.position;
+            const oldWrapperZ = wrapper.style.zIndex;
+            const scrollY = window.scrollY;
+
+            // 3. Reset ukuran wrapper ke aslinya 1080x1350px dan letakkan di latar belakang sementara
+            canvasEl.style.transform = 'none';
+            wrapper.style.width = '1080px';
+            wrapper.style.height = '1350px';
+            wrapper.style.position = 'absolute';
+            wrapper.style.top = '0';
+            wrapper.style.left = '0';
+            wrapper.style.zIndex = '-1'; // Berada di bawah loading overlay putih (tidak akan terlihat pengguna)
+
+            // Beri waktu 100ms agar browser menghitung ulang geometri tata letak
+            await new Promise(resolve => setTimeout(resolve, 150));
+
+            try {
+                // 4. Render elemen asli dengan html2canvas
+                const renderedCanvas = await html2canvas(canvasEl, {
+                    scale: 2, // Kualitas Resolusi Tinggi (2160x2700px)
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#ffffff',
+                    width: 1080,
+                    height: 1350,
+                    logging: false
+                });
+
+                // 5. Kembalikan semua state seperti semula
+                canvasEl.style.transform = oldScale;
+                wrapper.style.width = oldWrapperWidth;
+                wrapper.style.height = oldWrapperHeight;
+                wrapper.style.position = oldWrapperPos;
+                wrapper.style.zIndex = oldWrapperZ;
+                window.scrollTo(0, scrollY);
+
+                // Kembalikan outline hover
+                editables.forEach(el => {
+                    el.classList.add('hover:ring-2', 'hover:ring-blue-300', 'hover:bg-blue-50/10', 'transition');
+                });
+
+                return renderedCanvas;
+            } catch (error) {
+                // Jika error, pastikan DOM tetap dikembalikan ke semula!
+                canvasEl.style.transform = oldScale;
+                wrapper.style.width = oldWrapperWidth;
+                wrapper.style.height = oldWrapperHeight;
+                wrapper.style.position = oldWrapperPos;
+                wrapper.style.zIndex = oldWrapperZ;
+                window.scrollTo(0, scrollY);
+                
+                editables.forEach(el => {
+                    el.classList.add('hover:ring-2', 'hover:ring-blue-300', 'hover:bg-blue-50/10', 'transition');
+                });
+                
+                throw error;
+            }
+        }
+
+        async function downloadImage(type = 'jpg') {
+            if(!generatedData) return;
+            
+            // Tampilkan layar loading agar proses perbesaran kanvas tidak terlihat pengguna
+            const loader = document.getElementById('loading-overlay');
+            document.getElementById('loading-title').innerText = "Memproses Gambar HD...";
+            document.getElementById('loading-desc').innerText = "Menjaga teks tetap tajam dan tata letak presisi.";
+            loader.classList.remove('hidden');
+            
+            try {
+                const canvas = await prepareCanvasForExport();
+                const mimeType = type === 'png' ? 'image/png' : 'image/jpeg';
+                const dataUrl = canvas.toDataURL(mimeType, 1.0); // Kualitas maksimal
+                
+                const link = document.createElement('a');
+                link.download = `PJOK_Kls${generatedData.kelas}_P${generatedData.pertemuan}_${generatedData.materiStr.replace(/\s+/g, '')}.${type}`;
+                link.href = dataUrl;
+                link.click();
+                showToast(`Berhasil mengunduh ${type.toUpperCase()}!`);
+            } catch (err) {
+                console.error(err);
+                showToast("Gagal memproses gambar.", true);
+            } finally {
+                loader.classList.add('hidden'); // Tutup loading
+            }
+        }
+
+        async function downloadPDF() {
+            if(!generatedData) return;
+            
+            const loader = document.getElementById('loading-overlay');
+            document.getElementById('loading-title').innerText = "Menyiapkan PDF...";
+            document.getElementById('loading-desc').innerText = "Menggabungkan poster ke dalam dokumen A4.";
+            loader.classList.remove('hidden');
+
+            try {
+                const canvas = await prepareCanvasForExport();
+                const imgData = canvas.toDataURL('image/jpeg', 0.9);
+                
+                // Kertas A4 (210x297 mm)
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+
+                // Kalkulasi rasio untuk menempatkan poster 4:5 di A4
+                // Lebar A4 = 210, Poster w=1080, h=1350
+                // Margin 10mm
+                const margin = 10;
+                const pdfWidth = 210 - (margin * 2);
+                const pdfHeight = (1350 * pdfWidth) / 1080; 
+
+                // Tambah Header Teks di PDF
+                pdf.setFont("helvetica", "bold");
+                pdf.setFontSize(16);
+                pdf.text("PANDUAN BELAJAR PESERTA DIDIK", 105, 15, null, null, "center");
+                
+                pdf.setFontSize(11);
+                pdf.setFont("helvetica", "normal");
+                pdf.text(`Mata Pelajaran: PJOK | Kelas: ${generatedData.kelas} | Semester: ${generatedData.semester}`, 105, 22, null, null, "center");
+
+                // Masukkan gambar
+                pdf.addImage(imgData, 'JPEG', margin, 30, pdfWidth, pdfHeight);
+
+                pdf.save(`Panduan_PJOK_Kelas${generatedData.kelas}_Pertemuan${generatedData.pertemuan}.pdf`);
+                showToast("PDF berhasil diunduh!");
+            } catch (err) {
+                console.error(err);
+                showToast("Gagal memproses PDF.", true);
+            } finally {
+                loader.classList.add('hidden');
+            }
+        }
+
+        function generateWAText() {
+            if(!generatedData) return;
+            
+            const teks = `*PANDUAN BELAJAR PJOK - KELAS ${generatedData.kelas}*
+=============================
+Halo anak-anak hebat! 👋
+Hari ini kita akan belajar PJOK.
+
+*Materi:* ${generatedData.materiStr}
+*Pertemuan Ke:* ${generatedData.pertemuan}
+
+🎯 *Tujuan:* 
+${generatedData.objective}
+
+🏃‍♂️ *Ayo Bergerak (Langkah Kegiatan):*
+${generatedData.steps.map((s, i) => `${i+1}. ${s}`).join('\n')}
+
+📦 *Alat yang disiapkan:* 
+${generatedData.tools.join(', ')}
+
+⚠️ *Ingat:*
+${generatedData.safety[0] || 'Lakukan pemanasan ya!'}
+
+_Setelah selesai, silakan jawab pesan ini: Bagian mana yang paling menyenangkan?_
+
+Semangat berolahraga dan jaga kesehatan! 💪
+Salam, 
+${generatedData.guru}`;
+
+            document.getElementById('wa-text-area').value = teks;
+            openModal('wa-modal');
+        }
+
+        function copyWA() {
+            const textarea = document.getElementById('wa-text-area');
+            textarea.select();
+            document.execCommand('copy');
+            showToast("Teks berhasil disalin!");
+            closeModal('wa-modal');
+        }
+
+        function saveToHistory(data) {
+            let history = JSON.parse(localStorage.getItem('pjok_history') || '[]');
+            
+            // Format tanggal
+            const date = new Date();
+            const dateStr = `${date.getDate()}/${date.getMonth()+1}/${date.getFullYear()} ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
+            
+            const record = {
+                id: Date.now().toString(),
+                date: dateStr,
+                kelas: data.kelas,
+                materiStr: data.materiStr,
+                pertemuan: data.pertemuan,
+                tema: data.tema
+            };
+
+            history.unshift(record); // Tambah di awal
+            
+            // Batasi maksimal 20 riwayat
+            if(history.length > 20) history = history.slice(0, 20);
+            
+            localStorage.setItem('pjok_history', JSON.stringify(history));
+            loadHistoryTable();
+        }
+
+        function loadHistoryTable() {
+            const history = JSON.parse(localStorage.getItem('pjok_history') || '[]');
+            const tbody = document.getElementById('history-table-body');
+            const emptyState = document.getElementById('empty-history');
+            
+            tbody.innerHTML = '';
+            
+            if(history.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            
+            history.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition';
+                tr.innerHTML = `
+                    <td class="px-6 py-4 text-slate-600">${item.date}</td>
+                    <td class="px-6 py-4 font-medium text-slate-800">Kelas ${item.kelas} - ${item.materiStr}</td>
+                    <td class="px-6 py-4 text-slate-600">Ke-${item.pertemuan}</td>
+                    <td class="px-6 py-4 text-right">
+                        <button onclick="deleteHistory('${item.id}')" class="text-red-500 hover:text-red-700 bg-red-50 p-2 rounded mr-2" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function deleteHistory(id) {
+            let history = JSON.parse(localStorage.getItem('pjok_history') || '[]');
+            history = history.filter(h => h.id !== id);
+            localStorage.setItem('pjok_history', JSON.stringify(history));
+            loadHistoryTable();
+            showToast("Riwayat dihapus.");
+        }
+
+        // Preview DB Visual
+        function populateDatabasePreview() {
+            const container = document.getElementById('db-preview');
+            let html = '';
+            
+            for(let level in materiDB) {
+                let badge = level === "1" ? "Kelas 1-2 (Pemula)" : level === "3" ? "Kelas 3-4 (Menengah)" : "Kelas 5-6 (Atas)";
+                html += `<div class="mb-6"><h4 class="font-bold text-lg text-blue-600 border-b pb-2 mb-3">${badge}</h4>`;
+                
+                for(let materi in materiDB[level]) {
+                    html += `
+                        <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-3 ml-4 relative border-l-4 border-l-blue-400">
+                            <h5 class="font-bold text-slate-800 mb-1">${materi}</h5>
+                            <p class="text-sm text-slate-600 mb-2"><strong>Fokus:</strong> ${materiDB[level][materi].objective}</p>
+                            <div class="flex gap-2">
+                                <span class="text-xs bg-white px-2 py-1 rounded border shadow-sm">${materiDB[level][materi].steps.length} Langkah</span>
+                                <span class="text-xs bg-white px-2 py-1 rounded border shadow-sm">${materiDB[level][materi].tools.length} Alat</span>
+                            </div>
+                        </div>
+                    `;
+                }
+                html += `</div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        function showHelp() {
+            alert("Aplikasi ini membantu Guru PJOK membuat poster panduan belajar. \n1. Buka menu 'Buat Panduan'\n2. Isi form lengkap\n3. Klik Generate\n4. Unduh poster atau salin teks untuk grup kelas.");
+        }
+    </script>
+</body>
+</html>
